@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR-Code Generator with Frame Padding</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    #urlInput, input[type="color"], #filenameInput {
+      width: 300px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #qrcode {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QR Code Generator with Frame Padding</h1>
+
+    <input type="text" id="urlInput" placeholder="Enter Your URL"  /><br>
+
+    <label for="frameColor">Choose Frame Color:</label><br>
+    <input type="color" id="frameColor" value="#ff0000" /><br>
+
+    <label for="filenameInput">Enter Custom Filename:</label><br>
+    <input type="text" id="filenameInput" placeholder="Enter filename (optional)" /><br>
+
+    <button onclick="generateQR()">Generate QR Code</button><br>
+    <canvas id="qrcode" width="360" height="360"></canvas><br>
+    <button onclick="downloadQR()">Download QR Code</button>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    generateQR();
+  });
+
+  function generateQR() {
+    const url = document.getElementById("urlInput").value.trim();
+    const color = document.getElementById("frameColor").value;
+    const canvas = document.getElementById("qrcode");
+    const ctx = canvas.getContext("2d");
+
+    const canvasSize = 360;
+    const qrSize = 300;
+    const framePadding = 10;
+    const totalPadding = framePadding * 2;
+    const frameWidth = (canvasSize - qrSize - totalPadding) / 2;
+
+    if (!isValidUrl(url)) {
+      alert("Please enter a valid URL.");
+      return;
+    }
+
+    const tempCanvas = document.createElement("canvas");
+    new QRious({
+      element: tempCanvas,
+      value: url,
+      size: qrSize
+    });
+
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+    ctx.drawImage(tempCanvas, frameWidth + framePadding, frameWidth + framePadding, qrSize, qrSize);
+  }
+
+  function downloadQR() {
+    const canvas = document.getElementById("qrcode");
+    const url = canvas.toDataURL("image/png");
+
+ 
+    const filenameInput = document.getElementById("filenameInput").value.trim();
+    const filename = filenameInput || "QrCode-" + formatDate(new Date()) + ".png";
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = padNumber(date.getMonth() + 1);
+    const day = padNumber(date.getDate());
+    const hours = padNumber(date.getHours());
+    const minutes = padNumber(date.getMinutes());
+    const seconds = padNumber(date.getSeconds());
+    return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+  }
+
+  function padNumber(num) {
+    return num.toString().padStart(2, '0');
+  }
+
+  function isValidUrl(string) {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+</script>
+</body>
+</html>
